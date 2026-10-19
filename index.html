@@ -119,6 +119,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulatio
 .mon .mouth{width:24%;height:7%;margin-top:3%;background:#7f1d1d;border-radius:0 0 60px 60px;}
 .mon .pic{margin-top:5%;width:54%;aspect-ratio:1;background:#fff;border-radius:20%;display:grid;place-items:center;
   font-size:calc(var(--size)*.3);line-height:1;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+.mon .pic.ko{width:78%;aspect-ratio:auto;min-height:calc(var(--size)*.3);padding:6px 4px;font-size:calc(var(--size)*.15);text-align:center;word-break:keep-all;line-height:1.15;}
 .mon .bubble{position:absolute;top:-6%;right:-8%;background:#fff;border-radius:14px;padding:4px 10px;font-size:20px;opacity:0;transform:scale(.5);transition:.2s;}
 .mon.wrong{animation:shake .5s;}
 .mon.wrong .bubble{opacity:1;transform:scale(1);}
@@ -280,10 +281,23 @@ const STAGES = [
   {id:7, name:'하늘 정원', icon:'🌸', words:[['sun','☀️','해'],['moon','🌙','달'],['star','⭐','별'],['rain','🌧️','비'],['snow','❄️','눈(날씨)'],['tree','🌳','나무'],['flower','🌸','꽃'],['cloud','☁️','구름']]},
   {id:8, name:'장난감 방', icon:'🎒', words:[['book','📖','책'],['pencil','✏️','연필'],['bag','🎒','가방'],['chair','🪑','의자'],['clock','⏰','시계'],['ball','⚽','공'],['cup','🥤','컵'],['hat','🎩','모자']]},
   {id:9, name:'깊은 바다', icon:'🐳', words:[['fish','🐟','물고기'],['whale','🐳','고래'],['dolphin','🐬','돌고래'],['octopus','🐙','문어'],['crab','🦀','게'],['shark','🦈','상어'],['turtle','🐢','거북이'],['penguin','🐧','펭귄']]},
-  {id:10, name:'마법사의 성', icon:'🧙', boss:true, words:[]},
+  {id:10, name:'마법사의 성', icon:'🧙', boss:true, from:[1,9], words:[]},
+  // ---- 고학년 편 (ko:true 는 그림 대신 한글 뜻이 몬스터에 나와요) ----
+  {id:11, name:'직업 거리', icon:'🧑‍⚕️', words:[['doctor','🧑‍⚕️','의사'],['teacher','🧑‍🏫','선생님'],['firefighter','🧑‍🚒','소방관'],['scientist','🧑‍🔬','과학자'],['farmer','🧑‍🌾','농부'],['chef','🧑‍🍳','요리사'],['pilot','🧑‍✈️','조종사'],['singer','🧑‍🎤','가수']]},
+  {id:12, name:'우리 동네', icon:'🏥', words:[['hospital','🏥','병원'],['library','📚','도서관'],['museum','🏛️','박물관'],['bank','🏦','은행'],['airport','🛫','공항'],['park','🏞️','공원'],['restaurant','🍽️','식당'],['school','🏫','학교']]},
+  {id:13, name:'날씨와 계절', icon:'⛈️', words:[['sunny','☀️','화창한'],['windy','💨','바람 부는'],['stormy','⛈️','폭풍우 치는'],['foggy','🌫️','안개 낀'],['spring','🌱','봄'],['summer','🏖️','여름'],['autumn','🍂','가을'],['winter','⛄','겨울']]},
+  {id:14, name:'취미와 운동', icon:'⚾', words:[['baseball','⚾','야구'],['basketball','🏀','농구'],['swimming','🏊','수영'],['skiing','⛷️','스키'],['dancing','💃','춤추기'],['painting','🎨','그림 그리기'],['camping','⛺','캠핑'],['fishing','🎣','낚시']]},
+  {id:15, name:'학교 과목', icon:'🔬', words:[['math','➗','수학'],['science','🔬','과학'],['music','🎵','음악'],['history','📜','역사'],['english','🔤','영어'],['geography','🌍','지리'],['computer','💻','컴퓨터'],['art','🖼️','미술']]},
+  {id:16, name:'감정 마을', icon:'🤩', words:[['happy','😊','행복한'],['sad','😢','슬픈'],['angry','😠','화난'],['scared','😨','무서워하는'],['tired','😴','피곤한'],['excited','🤩','신나는'],['surprised','😲','놀란'],['bored','🥱','지루한']]},
+  {id:17, name:'행동 동사', icon:'🏃', ko:true, words:[['borrow','🤲','빌리다'],['invite','💌','초대하다'],['decide','🤔','결정하다'],['practice','🏋️','연습하다'],['remember','🧠','기억하다'],['forget','🙈','잊어버리다'],['build','🏗️','짓다'],['wait','⏳','기다리다']]},
+  {id:18, name:'꾸미는 말', icon:'🌟', ko:true, words:[['important','❗','중요한'],['difficult','🧩','어려운'],['easy','😌','쉬운'],['dangerous','⚠️','위험한'],['special','🌟','특별한'],['popular','🔥','인기 있는'],['beautiful','🌷','아름다운'],['different','🔀','다른']]},
+  {id:19, name:'반대말 짝꿍', icon:'⚖️', ko:true, words:[['early','⏰','이른'],['late','🐌','늦은'],['heavy','🏋️','무거운'],['light','🪶','가벼운'],['strong','💪','강한'],['weak','🥀','약한'],['clean','✨','깨끗한'],['dirty','🗑️','더러운']]},
+  {id:20, name:'마법사의 탑', icon:'🏰', boss:true, from:[11,19], ko:true, words:[]},
 ];
 const WORDS = {};
-STAGES.forEach(s => s.words.forEach(([w,e,k]) => WORDS[w] = {w,e,k,stage:s.id}));
+STAGES.forEach(s => s.words.forEach(([w,e,k]) => WORDS[w] = {w,e,k,stage:s.id,ko:!!s.ko}));
+const stageIdx = id => STAGES.findIndex(s => s.id === id);
+const nextStage = id => STAGES[stageIdx(id) + 1];
 const ALL_WORDS = Object.keys(WORDS);
 const MON_COLORS = ['#a78bfa','#f472b6','#34d399','#fbbf24','#60a5fa','#fb923c','#f87171','#2dd4bf'];
 const CHEERS = ['Great!','Awesome!','Good job!','Super!','Nice!','Wow!'];
@@ -320,7 +334,7 @@ const level = () => Math.floor(S.xp / 100) + 1;
 const wstat = w => S.words[w] || (S.words[w] = {seen:0, c:0, wrong:0});
 const mastery = st => !st || st.seen === 0 ? 0 : st.c >= 6 ? 3 : st.c >= 3 ? 2 : 1;
 const MEDAL = ['', '🥉', '🥈', '🥇'];
-const unlocked = id => id === 1 || (S.stages[id-1] && S.stages[id-1].stars > 0);
+const unlocked = id => { const i = stageIdx(id); return i === 0 || !!(S.stages[STAGES[i-1].id] && S.stages[STAGES[i-1].id].stars > 0); };
 
 /* ================== 소리 ================== */
 let voice = null;
@@ -332,37 +346,17 @@ function pickVoice(){
        || vs.find(v => /^en/i.test(v.lang)) || null;
 }
 if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
-// 기계음(브라우저 TTS)은 녹음 파일이 없을 때만 씁니다
-function ttsSpeak(text, rate, vol){
+// 기기 내장 음성으로 읽기. 배열을 주면 순서대로 이어서 읽어요 (예: ['Great!', 'apple'])
+function speak(text, rate, vol){
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US'; if (voice) u.voice = voice;
-  u.rate = rate || (S ? S.settings.rate : 0.85);
-  if (vol !== undefined) u.volume = vol;
-  speechSynthesis.speak(u);
-}
-// 미리 녹음한 원어민 음성(audio/*.mp3). 아이패드는 한 번 재생한 플레이어만 다시 재생을 허락하므로 하나를 계속 씁니다
-const clipName = t => t.toLowerCase().replace(/[^a-z]+/g, '_').replace(/^_|_$/g, '');
-const player = new Audio(); player.preload = 'auto';
-let playQueue = [], playToken = 0;
-function playNext(token, rate){
-  if (token !== playToken || !playQueue.length) return;
-  const text = playQueue.shift();
-  player.src = 'audio/' + clipName(text) + '.mp3';
-  player.playbackRate = Math.max(0.6, Math.min(1.3, (rate || (S ? S.settings.rate : 0.85)) / 0.85));
-  player.onended = () => playNext(token, rate);
-  player.onerror = () => { if (token === playToken){ ttsSpeak(text, rate); } };
-  const p = player.play();
-  if (p && p.catch) p.catch(() => { if (token === playToken) ttsSpeak(text, rate); });
-}
-function speak(text, rate, vol){
-  const token = ++playToken;
-  try { player.pause(); } catch(e) {}
-  if ('speechSynthesis' in window) speechSynthesis.cancel();
-  if (vol === 0) return;
-  playQueue = Array.isArray(text) ? text.slice() : [text];
-  playNext(token, rate);
+  (Array.isArray(text) ? text : [text]).forEach(t => {
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = 'en-US'; if (voice) u.voice = voice;
+    u.rate = rate || (S ? S.settings.rate : 0.85);
+    if (vol !== undefined) u.volume = vol;
+    speechSynthesis.speak(u);
+  });
 }
 let actx = null;
 function tone(freq, dur, type, when, vol){
@@ -379,16 +373,7 @@ function tone(freq, dur, type, when, vol){
 const sfxGood = () => { tone(660,.15,'triangle',0); tone(880,.15,'triangle',.1); tone(1320,.25,'triangle',.2); };
 const sfxBad  = () => { tone(200,.25,'sawtooth',0,.08); tone(150,.3,'sawtooth',.12,.08); };
 const sfxWin  = () => [523,659,784,1047].forEach((f,i) => tone(f,.3,'triangle',i*.15));
-function unlockAudio(){
-  try {   // 터치하는 순간 플레이어를 무음으로 한 번 재생해 두면 이후 자동 재생이 됩니다
-    const token = ++playToken;
-    player.src = 'audio/great.mp3'; player.muted = true;
-    const p = player.play();
-    const done = () => { if (token === playToken) player.pause(); player.muted = false; };
-    if (p && p.then) p.then(done, done); else done();
-  } catch(e) {}
-  ttsSpeak(' ', 1, 0); tone(1,.01);
-}
+function unlockAudio(){ speak(' ', 1, 0); tone(1,.01); }   // 첫 터치 때 소리를 한 번 열어 둬야 이후 자동으로 읽어줘요
 
 /* ================== 공용 ================== */
 const $ = id => document.getElementById(id);
@@ -470,7 +455,7 @@ function stagePool(id){
     return ALL_WORDS.filter(w => S.words[w] && S.words[w].seen > 0 && mastery(S.words[w]) < 3);
   }
   const st = STAGES.find(s => s.id === id);
-  if (st.boss) return ALL_WORDS;
+  if (st.boss) return STAGES.filter(s => !s.boss && s.id >= st.from[0] && s.id <= st.from[1]).flatMap(s => s.words.map(x => x[0]));
   return st.words.map(x => x[0]);
 }
 function weight(w){
@@ -527,6 +512,7 @@ function nextQuestion(){
   const n = (typeof ses.stage === 'number' && ses.stage <= 2) ? 3 : 4;
   const opts = shuffle([target, ...shuffle(pool.filter(w => w !== target)).slice(0, n-1)]);
   const colors = shuffle(MON_COLORS);
+  const koMode = WORDS[target].ko;   // 추상적인 단어는 그림 대신 한글 뜻을 보여줘요
   const field = $('field');
   field.className = 'field' + (n === 3 ? ' three' : '');
   field.innerHTML = '';
@@ -538,7 +524,7 @@ function nextQuestion(){
     b.dataset.w = w;
     b.innerHTML = `<span class="horn l"></span><span class="horn r"></span>
       <span class="blob"><span class="eyes"><i></i><i></i></span><span class="mouth"></span>
-      <span class="pic">${WORDS[w].e}</span></span><span class="bubble">Hehe~</span>`;
+      ${koMode ? `<span class="pic ko">${WORDS[w].k}</span>` : `<span class="pic">${WORDS[w].e}</span>`}</span><span class="bubble">Hehe~</span>`;
     b.onclick = () => tapMonster(b);
     field.appendChild(b);
   });
@@ -610,7 +596,7 @@ function finishStage(){
   let newStageOpened = false;
   if (typeof ses.stage === 'number'){
     const prev = S.stages[ses.stage];
-    newStageOpened = !prev && STAGES.some(s => s.id === ses.stage + 1);
+    newStageOpened = !prev && !!nextStage(ses.stage);
     S.stages[ses.stage] = {stars: Math.max(stars, prev ? prev.stars : 0), best: Math.max(ses.score, prev ? prev.best : 0)};
   }
   S.session = null; touchStreak(); save();
@@ -626,14 +612,14 @@ function finishStage(){
   if (ses.upCards.length) h += `<p style="margin:10px 0 6px;font-size:22px">⬆️ 카드 진화!</p><div class="newcards">${ses.upCards.map(w=>`<span>${MEDAL[mastery(S.words[w])]} ${WORDS[w].e} ${w}</span>`).join('')}</div>`;
   if (newStageOpened) h += `<p style="margin:10px 0 0;font-size:22px;color:#16a34a">🔓 새 스테이지가 열렸어요!</p>`;
   $('rNew').innerHTML = h;
-  const hasNext = typeof ses.stage === 'number' && STAGES.some(s => s.id === ses.stage + 1);
+  const hasNext = typeof ses.stage === 'number' && !!nextStage(ses.stage);
   $('rNext').style.display = hasNext ? '' : 'none';
   show('result'); sfxWin();
   setTimeout(() => speak(stars === 3 ? 'Perfect! You are amazing!' : 'Great job!'), 500);
 }
 $('rMap').onclick = renderMap;
 $('rAgain').onclick = () => startStage(lastStage);
-$('rNext').onclick = () => startStage(lastStage + 1);
+$('rNext').onclick = () => startStage(nextStage(lastStage).id);
 
 /* ================== 도감 ================== */
 function renderDex(){
