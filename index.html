@@ -128,6 +128,27 @@ button{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulatio
 .mon.fade{opacity:.3;filter:grayscale(.8);transition:.3s;}
 .float{position:fixed;font-size:34px;pointer-events:none;color:#fff;text-shadow:0 3px 0 #ea580c;animation:up 1s forwards;z-index:10;}
 
+/* ---------- Parrot Detective ---------- */
+#parrot{gap:8px;background:linear-gradient(180deg,#fde68a,#fbcfe8);margin:0;}
+.casebox{text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.casebox .pb{font-size:64px;line-height:1;animation:bob 2s ease-in-out infinite;}
+.casebox .ct{font-size:clamp(22px,4vw,30px);}
+.casebox .ch{font-size:18px;color:var(--muted);}
+.pfield{--size:min(40vw,24vh,210px);flex:1;display:grid;grid-template-columns:repeat(2,var(--size));justify-content:center;align-content:center;gap:min(4vw,22px);}
+@media (orientation:landscape){
+  .pfield{--size:min(20vw,36vh,200px);grid-template-columns:repeat(4,var(--size));}
+}
+.pcard{border:0;background:#fff;border-radius:26px;width:var(--size);height:var(--size);display:grid;place-items:center;
+  box-shadow:0 8px 0 rgba(0,0,0,.14);position:relative;padding:0;animation:pop .35s backwards;}
+.pcard:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.14);}
+.pcard .e{font-size:calc(var(--size)*.5);line-height:1;}
+.pcard .disc{width:82%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;box-shadow:inset -8px -10px 0 rgba(0,0,0,.14);}
+.pcard .disc .e{font-size:calc(var(--size)*.42);filter:drop-shadow(0 3px 0 rgba(0,0,0,.18));}
+.pcard.wrong{animation:shake .5s;}
+.pcard.out{opacity:.3;pointer-events:none;}
+.pcard.hint{box-shadow:0 0 0 8px #fde047,0 0 34px 12px #fde047;}
+.pcard.right{animation:pop .4s;box-shadow:0 0 0 8px var(--good),0 8px 0 rgba(0,0,0,.14);}
+
 /* ---------- Result ---------- */
 #result,#dex{align-items:center;}
 .panel{background:#fff;border-radius:32px;padding:26px;width:min(94vw,620px);text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.1);
@@ -206,6 +227,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulatio
   <div class="mapfoot">
     <button class="btn blue small" id="dexBtn">📚 몬스터 도감</button>
     <button class="btn green small" id="reviewBtn">🔁 도망간 몬스터 잡기</button>
+    <button class="btn small" id="parrotBtn">🦜 앵무새탐정</button>
     <button class="btn gray small" id="setBtn">⚙️ 설정·백업</button>
   </div>
 </section>
@@ -224,6 +246,38 @@ button{font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulatio
   </div>
   <div class="status" id="status"></div>
   <div class="field" id="field"></div>
+</section>
+
+<!-- 앵무새탐정 -->
+<section id="parrot" class="screen">
+  <div class="topbar">
+    <button class="icon" id="pQuit" aria-label="나가기">🏠</button>
+    <div class="dots" id="pDots"></div>
+    <div class="score">⭐ <span id="pScore">0</span></div>
+  </div>
+  <div class="casebox">
+    <div class="pb">🦜🔎</div>
+    <div class="ct" id="pTitle"></div>
+    <div class="ch">앵무새의 증언을 잘 듣고 범인을 찾아요!</div>
+  </div>
+  <div class="listen">
+    <button class="speaker" id="pPlay" aria-label="다시 듣기">🔊</button>
+    <button class="slow" id="pSlow" aria-label="천천히 듣기">🐢</button>
+  </div>
+  <div class="status" id="pStatus"></div>
+  <div class="pfield" id="pField"></div>
+</section>
+
+<section id="pResult" class="screen">
+  <div class="panel">
+    <h2 id="prTitle"></h2>
+    <div class="bigstars" id="prStars"></div>
+    <div class="rstats" id="prStats"></div>
+    <div class="row">
+      <button class="btn gray small" id="prMap">🗺️ 지도</button>
+      <button class="btn green small" id="prAgain">🔄 새 사건</button>
+    </div>
+  </div>
 </section>
 
 <!-- 결과 -->
@@ -306,7 +360,7 @@ const KEY = 'wordisland_save_v1';
 /* ================== 저장 ================== */
 let S = null;
 function freshSave(name){
-  return {v:1, name, xp:0, coins:0, stages:{}, words:{}, streak:{n:0,last:''}, settings:{rate:0.85}, session:null};
+  return {v:1, name, xp:0, coins:0, stages:{}, words:{}, streak:{n:0,last:''}, settings:{rate:0.85}, session:null, parrot:{best:0,played:0}};
 }
 function loadSave(){
   try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch(e) {}
@@ -423,6 +477,7 @@ function renderMap(){
   $('xpFill').style.width = (S.xp % 100) + '%';
   $('coinTxt').textContent = `🪙 ${S.coins}`;
   $('streakTxt').textContent = `🔥 ${S.streak.n}일`;
+  $('parrotBtn').textContent = (parrotUnlocked() ? '🦜' : '🔒') + ' 앵무새탐정';
   const list = $('stageList'); list.innerHTML = '';
   STAGES.forEach(st => {
     const b = document.createElement('button');
@@ -676,6 +731,145 @@ $('resetBtn').onclick = () => {
   try { localStorage.removeItem(KEY); } catch(e) {}
   S = null; $('setModal').classList.remove('on'); renderHome();
 };
+
+/* ================== 앵무새탐정 ================== */
+const SAW_STAGES = [1,2,4,5,6,7,8,9,11,12];                 // "I saw a ○○." 에 어울리는 명사 스테이지
+const NO_SAW = ['milk','bread','rice','rain','snow','sun'];   // 셀 수 없거나 어색한 단어
+const COLORABLE = ['car','bus','train','airplane','ship','bike','ball','bag','hat','cup','chair','book','pencil'];
+const COLOR_HEX = {red:'#ef4444', blue:'#3b82f6', green:'#22c55e', yellow:'#facc15', purple:'#a855f7', brown:'#92400e', black:'#334155'};
+const CASE_TITLES = ['🍪 쿠키가 사라졌다!','🎩 마술사의 모자가 없어졌다!','🔑 열쇠가 사라졌다!','🖼️ 그림이 없어졌다!','💎 보석이 사라졌다!','🎂 케이크가 없어졌다!','🔦 손전등이 사라졌다!','🧸 곰인형이 없어졌다!'];
+const PARROT_N = 8;
+const art = w => /^[aeiou]/.test(w) ? 'an' : 'a';
+const parrotUnlocked = () => !!(S.stages[1] && S.stages[1].stars > 0);
+let P = null;
+
+function parrotPools(){
+  const cleared = STAGES.filter(s => !s.boss && S.stages[s.id] && S.stages[s.id].stars > 0);
+  const words = cleared.flatMap(s => s.words.map(x => x[0]));
+  const nouns = cleared.filter(s => SAW_STAGES.includes(s.id)).flatMap(s => s.words.map(x => x[0])).filter(w => !NO_SAW.includes(w));
+  const objs = words.filter(w => COLORABLE.includes(w));
+  const colors = words.filter(w => COLOR_HEX[w]);
+  return {nouns, objs, colors, double: objs.length >= 2 && colors.length >= 3};
+}
+function pickOthers(list, avoid, n, prefer){
+  let o = shuffle(list.filter(w => w !== avoid));
+  if (prefer) o = o.filter(prefer).concat(o.filter(w => !prefer(w)));
+  return o.slice(0, n);
+}
+function makeCase(pl, kind, prev){
+  if (kind === 2){
+    const o = weightedPick(pl.objs, prev.o), c = weightedPick(pl.colors, prev.c);
+    const o2 = pickOthers(pl.objs, o, 1)[0], [c2, c3] = pickOthers(pl.colors, c, 2);
+    const cards = shuffle([{o,c}, {o,c:c2}, {o:o2,c}, {o,c:c3}]);
+    return {kind, o, c, words:[o,c], cards, sentence:`I saw a ${c} ${o}.`, ko:`${WORDS[c].k} ${WORDS[o].k}`, em:WORDS[o].e};
+  }
+  const o = weightedPick(pl.nouns, prev.o);
+  const cards = shuffle([o, ...pickOthers(pl.nouns, o, 3, w => WORDS[w].stage !== WORDS[o].stage)].map(w => ({o:w})));
+  return {kind, o, words:[o], cards, sentence:`I saw ${art(o)} ${o}.`, ko:WORDS[o].k, em:WORDS[o].e};
+}
+const ckey = x => (x.c || '') + '|' + x.o;
+function startParrot(){
+  const pl = parrotPools(), cases = [], prev = {};
+  for (let i=0;i<PARROT_N;i++){
+    const cs = makeCase(pl, (pl.double && i >= 3) ? 2 : 1, prev);
+    prev.o = cs.o; prev.c = cs.c; cases.push(cs);
+  }
+  P = {i:0, score:0, first:0, combo:0, maxCombo:0, coins:0, marks:[], cases, titles:shuffle(CASE_TITLES), tries:0, locked:false, t0:0};
+  show('parrot');
+  nextCase();
+}
+function renderPDots(){
+  $('pDots').innerHTML = P.cases.map((_,i) =>
+    `<i class="${i < P.i ? (P.marks[i] ? 'ok' : 'meh') : i === P.i ? 'now' : ''}"></i>`).join('');
+  $('pScore').textContent = P.score;
+}
+function nextCase(){
+  if (P.i >= P.cases.length){ finishParrot(); return; }
+  renderPDots();
+  const cs = P.cases[P.i], round = P, idx = P.i;
+  P.tries = 0; P.locked = false; P.t0 = Date.now();
+  $('pTitle').textContent = P.titles[P.i];
+  $('pStatus').innerHTML = '';
+  $('pField').innerHTML = '';
+  cs.cards.forEach(x => {
+    const b = document.createElement('button');
+    b.className = 'pcard'; b.dataset.k = ckey(x);
+    const e = WORDS[x.o].e;
+    b.innerHTML = x.c ? `<span class="disc" style="background:${COLOR_HEX[x.c]}"><span class="e">${e}</span></span>` : `<span class="e">${e}</span>`;
+    b.onclick = () => tapCard(b);
+    $('pField').appendChild(b);
+  });
+  setTimeout(() => { if (P === round && P.i === idx && !P.locked) speak(cs.sentence); }, 450);
+}
+function tapCard(el){
+  if (!P || P.locked) return;
+  const round = P, cs = P.cases[P.i];
+  const right = el.dataset.k === ckey(cs);
+  const sts = cs.words.map(wstat);
+  const reveal = () => `<span class="answer">${cs.em} <b>${cs.sentence}</b> ${cs.ko}</span>`;
+  if (right){
+    P.locked = true;
+    const first = P.tries === 0;
+    sts.forEach(st => { st.seen++; if (first) st.c++; });
+    if (first){ P.first++; P.combo++; P.maxCombo = Math.max(P.maxCombo, P.combo); }
+    const fast = Date.now() - P.t0 < 4000;
+    const pts = first ? 10 + Math.min(P.combo, 10) * 2 + (fast ? 5 : 0) : 5;
+    const lvBefore = level(), xp = first ? 8 : 3, coin = first ? (P.combo >= 3 ? 2 : 1) : 0;
+    P.score += pts; S.xp += xp; P.coins += coin; S.coins += coin;
+    P.marks[P.i] = first; P.i++;
+    save();
+    sfxGood(); el.classList.add('right'); floatText(el, `+${pts}`);
+    $('pStatus').innerHTML = `<span class="combo">Case closed! 🔎</span>` + (first && P.combo >= 2 ? `<span class="combo">🔥 ${P.combo}</span>` : '') + reveal();
+    setTimeout(() => speak('Case closed!'), 250);
+    if (level() > lvBefore) setTimeout(() => { toast(`🎉 레벨 업! Lv.${level()}`, 2000); sfxWin(); }, 600);
+    renderPDots();
+    setTimeout(() => { if (P === round) nextCase(); }, 1700);
+  } else {
+    P.tries++;
+    if (P.tries === 1) sts.forEach(st => { st.wrong++; });
+    P.combo = 0; sfxBad();
+    el.classList.remove('wrong'); void el.offsetWidth; el.classList.add('wrong'); setTimeout(() => el.classList.add('out'), 450);
+    if (P.tries >= 2){                       // 두 번 틀리면 정답을 알려 주고 다음 사건으로
+      P.locked = true;
+      sts.forEach(st => st.seen++);
+      document.querySelectorAll('.pcard').forEach(c => { if (c.dataset.k === ckey(cs)) c.classList.add('hint'); });
+      $('pStatus').innerHTML = reveal();
+      P.marks[P.i] = false; P.i++;
+      save(); renderPDots();
+      setTimeout(() => speak(cs.sentence), 300);
+      setTimeout(() => { if (P === round) nextCase(); }, 2600);
+    } else {
+      save();
+      $('pStatus').innerHTML = '<span>다시 들어 봐요 👂</span>';
+      setTimeout(() => { if (P === round && !P.locked) speak(cs.sentence); }, 500);
+    }
+  }
+}
+function finishParrot(){
+  const r = P.first / P.cases.length;
+  const stars = r >= 0.9 ? 3 : r >= 0.7 ? 2 : 1;
+  const bonus = stars * 3; P.coins += bonus; S.coins += bonus;
+  if (!S.parrot) S.parrot = {best:0, played:0};
+  S.parrot.best = Math.max(S.parrot.best, P.score); S.parrot.played++;
+  touchStreak(); save();
+  $('prTitle').textContent = stars === 3 ? '🔎 명탐정이에요!' : '🔎 사건 해결!';
+  $('prStars').innerHTML = [0,1,2].map(i => `<span>${i < stars ? '⭐' : '☆'}</span>`).join('');
+  $('prStats').innerHTML = `<span class="pill">🎯 한 번에 ${P.first}/${P.cases.length}</span>
+    <span class="pill">⭐ ${P.score}점</span><span class="pill">🔥 최고 ${P.maxCombo}콤보</span>
+    <span class="pill">🪙 +${P.coins}</span><span class="pill">🏆 최고 ${S.parrot.best}점</span>`;
+  P = null;
+  show('pResult'); sfxWin();
+  setTimeout(() => speak(stars === 3 ? 'Perfect! You are amazing!' : 'Great job!'), 500);
+}
+$('parrotBtn').onclick = () => {
+  if (!parrotUnlocked()){ toast('스테이지 1을 먼저 깨 주세요! 🔒'); return; }
+  unlockAudio(); startParrot();
+};
+$('pPlay').onclick = () => { if (P && P.cases[P.i]) speak(P.cases[P.i].sentence); };
+$('pSlow').onclick = () => { if (P && P.cases[P.i]) speak(P.cases[P.i].sentence, 0.45); };
+$('pQuit').onclick = () => { P = null; speak([]); save(); renderMap(); };
+$('prMap').onclick = renderMap;
+$('prAgain').onclick = startParrot;
 
 renderHome();
 </script>
